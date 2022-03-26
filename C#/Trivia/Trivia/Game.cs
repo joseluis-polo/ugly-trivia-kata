@@ -28,30 +28,22 @@ namespace Trivia
                 _popQuestions.AddLast("Pop Question " + i);
                 _scienceQuestions.AddLast(("Science Question " + i));
                 _sportsQuestions.AddLast(("Sports Question " + i));
-                _rockQuestions.AddLast(CreateRockQuestion(i));
+                _rockQuestions.AddLast("Rock Question " + i);
             }
-        }
-
-        public string CreateRockQuestion(int index)
-        {
-            return "Rock Question " + index;
         }
 
         public bool Add(string playerName)
         {
+            var numOfPlayers = _players.Count;
+
             _players.Add(playerName);
-            _places[HowManyPlayers()] = 0;
-            _purses[HowManyPlayers()] = 0;
-            _inPenaltyBox[HowManyPlayers()] = false;
+            _places[numOfPlayers] = 0;
+            _purses[numOfPlayers] = 0;
+            _inPenaltyBox[numOfPlayers] = false;
 
             Console.WriteLine(playerName + " was added");
             Console.WriteLine("They are player number " + _players.Count);
             return true;
-        }
-
-        public int HowManyPlayers()
-        {
-            return _players.Count;
         }
 
         public void Roll(int roll)
@@ -66,8 +58,7 @@ namespace Trivia
                     _isGettingOutOfPenaltyBox = true;
 
                     Console.WriteLine(_players[_currentPlayer] + " is getting out of the penalty box");
-                    _places[_currentPlayer] = _places[_currentPlayer] + roll;
-                    if (_places[_currentPlayer] > 11) _places[_currentPlayer] = _places[_currentPlayer] - 12;
+                    _places[_currentPlayer] = NextPlayerPosition(roll);
 
                     Console.WriteLine(_players[_currentPlayer]
                             + "'s new location is "
@@ -83,8 +74,7 @@ namespace Trivia
             }
             else
             {
-                _places[_currentPlayer] = _places[_currentPlayer] + roll;
-                if (_places[_currentPlayer] > 11) _places[_currentPlayer] = _places[_currentPlayer] - 12;
+                _places[_currentPlayer] = NextPlayerPosition(roll);
 
                 Console.WriteLine(_players[_currentPlayer]
                         + "'s new location is "
@@ -94,41 +84,49 @@ namespace Trivia
             }
         }
 
+        private int NextPlayerPosition(int roll)
+        {
+            var next = _places[_currentPlayer] + roll;
+
+            return next > 11 ? next - 12 : next;
+        }
+
         private void AskQuestion()
         {
-            if (CurrentCategory() == "Pop")
-            {
-                Console.WriteLine(_popQuestions.First());
-                _popQuestions.RemoveFirst();
-            }
-            if (CurrentCategory() == "Science")
-            {
-                Console.WriteLine(_scienceQuestions.First());
-                _scienceQuestions.RemoveFirst();
-            }
-            if (CurrentCategory() == "Sports")
-            {
-                Console.WriteLine(_sportsQuestions.First());
-                _sportsQuestions.RemoveFirst();
-            }
-            if (CurrentCategory() == "Rock")
-            {
-                Console.WriteLine(_rockQuestions.First());
-                _rockQuestions.RemoveFirst();
-            }
+            var currentCategory = CurrentCategory();
+
+            if (currentCategory == "Pop")
+                AskQuestion(_popQuestions);
+            
+            if (currentCategory == "Science")
+                AskQuestion(_scienceQuestions);
+
+            if (currentCategory == "Sports")
+                AskQuestion(_sportsQuestions);
+            
+            if (currentCategory == "Rock")
+                AskQuestion(_rockQuestions);
+        }
+
+        private void AskQuestion(LinkedList<string> questions)
+        {
+            Console.WriteLine(questions.First());
+            _popQuestions.RemoveFirst();
         }
 
         private string CurrentCategory()
         {
-            if (_places[_currentPlayer] == 0) return "Pop";
-            if (_places[_currentPlayer] == 4) return "Pop";
-            if (_places[_currentPlayer] == 8) return "Pop";
-            if (_places[_currentPlayer] == 1) return "Science";
-            if (_places[_currentPlayer] == 5) return "Science";
-            if (_places[_currentPlayer] == 9) return "Science";
-            if (_places[_currentPlayer] == 2) return "Sports";
-            if (_places[_currentPlayer] == 6) return "Sports";
-            if (_places[_currentPlayer] == 10) return "Sports";
+            var place = _places[_currentPlayer];
+
+            if (place == 0 ||  place == 4 || place == 8)
+                return "Pop";
+
+            if (place == 1 || place == 5 || place == 9)
+                return "Science";
+
+            if (place == 2 || place == 6 || place == 10)
+                return "Sports";
+
             return "Rock";
         }
 
@@ -160,7 +158,7 @@ namespace Trivia
             }
             else
             {
-                Console.WriteLine("Answer was corrent!!!!");
+                Console.WriteLine("Answer was correct!!!!");
                 _purses[_currentPlayer]++;
                 Console.WriteLine(_players[_currentPlayer]
                         + " now has "
@@ -189,7 +187,7 @@ namespace Trivia
 
         private bool DidPlayerWin()
         {
-            return !(_purses[_currentPlayer] == 6);
+            return _purses[_currentPlayer] != 6;
         }
     }
 
